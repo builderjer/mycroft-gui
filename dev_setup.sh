@@ -33,12 +33,13 @@ show_menus() {
     echo "6. OTHERS"
     echo "7. UPDATE INSTALLATION"
     echo "8. EXIT"
+    echo "9. Raspberry Pi OS / Picroft (Buster)"
 }
 
 read_options() {
     echo " "
 	local choice
-	read -p "Enter choice [ 1 - 8 ] " choice
+	read -p "Enter choice [ 1 - 9 ] " choice
 	case $choice in
 		1) neon ;;
 		2) kubuntu ;;
@@ -48,6 +49,7 @@ read_options() {
 		6) others ;;
 		7) updateinstall;;
 		8) exit 0;;
+    9) raspbian ;;
 		*) echo -e "${RED}Error...${STD}" && sleep 2
 	esac
 }
@@ -78,6 +80,28 @@ kubuntu() {
     build_gui
 }
 
+raspbian() {
+    echo "Starting Installation For Raspberry Pi OS (Buster)"
+    echo ""
+    if [[ ! -f /etc/apt/sources.list.d/extra-deb.list ]] ; then
+      echo "We need to install a debian repository"
+      echo "deb http://ftp.us.debian.org/debian buster main" | sudo tee -a /etc/apt/sources.list.d/extra-deb.list
+      echo "deb http://ftp.us.debian.org/debian buster non-free" | sudo tee -a /etc/apt/sources.list.d/extra-deb.list
+      echo "And add the debian keyring"
+      wget http://ftp.br.debian.org/debian/pool/main/d/debian-archive-keyring/debian-archive-keyring_2019.1_all.deb
+      sudo dpkg -i debian-archive-keyring_2019.1_all.deb
+      rm debian-archive-keyring_2019.1_all.deb
+      sudo apt install -y debian-archive-keyring debian-keyring
+      echo "Update the repositories"
+      sudo apt update
+    fi
+    echo "Following Packages Will Be Installed: git-core g++ cmake extra-cmake-modules gettext pkg-config qml-module-qtwebengine pkg-kde-tools qtbase5-dev qtdeclarative5-dev libkf5kio-dev libqt5websockets5-dev libkf5i18n-dev libkf5notifications-dev libkf5plasma-dev libqt5webview5-dev"
+    echo ""
+    echo "Please Enter Authentication For Installing System Dependencies"
+    sudo apt install -y git-core g++ cmake extra-cmake-modules gettext pkg-config qml-module-qtwebengine pkg-kde-tools qtbase5-dev qtdeclarative5-dev libkf5kio-dev libqt5websockets5-dev libkf5i18n-dev libkf5notifications-dev libkf5plasma-dev libqt5webview5-dev qtmultimedia5-dev
+    build_gui
+}
+
 manjaro() {
     echo "Starting Installation For Manjaro / Arch"
     echo ""
@@ -85,7 +109,7 @@ manjaro() {
     echo ""
     echo "Please Enter Authentication For Installing System Dependencies"
     yes | sudo pacman -S git cmake extra-cmake-modules kio kio-extras plasma-framework qt5-websockets qt5-webview qt5-declarative qt5-multimedia qt5-quickcontrols2 qt5-webengine qt5-base
-    build_gui   
+    build_gui
 }
 
 alpine() {
@@ -106,7 +130,7 @@ opensuse() {
     echo ""
     echo "Please Enter Authentication For Installing System Dependencies"
     sudo zypper --non-interactive install cmake extra-cmake-modules kio-devel kio-extras5 plasma-framework-devel libqt5-qtwebsockets-devel libqt5-qtwebview-devel libqt5-qtdeclarative-devel libqt5-qtmultimedia-devel libQt5QuickControls2-devel libqt5-qtwebengine-devel libqt5-qtbase-devel ki18n-devel kdbusaddons-devel
-  
+
 }
 
 updateinstall() {
@@ -130,11 +154,11 @@ others () {
       echo "You must manually install the following packages for this platform"
       echo "cmake extra-cmake-modules kio kio-extras plasma-framework qt5-websockets qt5-webview qt5-declarative qt5-multimedia qt5-quickcontrols2 qt5-webengine qt5-base"
       echo "Consider contributing support for your platform by adding it to this script"
-      
+
       echo "1. Continue Installation"
       echo "2. Return To Previous Menu"
       echo "3. Exit"
-      
+
       local additional_choice
       read -p "Enter choice [ 1 - 3 ] " additional_choice
       case $additional_choice in
@@ -175,7 +199,7 @@ function install_lottie() {
     make
     sudo make install
     complete_installer
-}   
+}
 
 function complete_installer() {
     echo " "
@@ -184,7 +208,7 @@ function complete_installer() {
             sudo mkdir /etc/mycroft
         fi
 
-cat <<EOF | sudo tee /etc/mycroft/mycroft.conf 
+cat <<EOF | sudo tee /etc/mycroft/mycroft.conf
 {
     "enclosure": {
         "platform": "mycroft_mark_2"
@@ -193,7 +217,7 @@ cat <<EOF | sudo tee /etc/mycroft/mycroft.conf
 EOF
 
     fi
-    
+
     if [[ -f /etc/mycroft/mycroft.conf ]] ; then
         echo "Found an existing Mycroft System Level Configuration at /etc/mycroft/mycroft.conf"
         echo "Please add the following enclosure settings manually to existing configuration to ensure working setup:"
@@ -202,7 +226,7 @@ EOF
         echo '     "platform": "mycroft_mark_2"'
         echo '}'
         echo ""
-    fi    
+    fi
     echo "Installation complete!"
     echo "To run, invoke:  mycroft-gui-app"
     exit 0
